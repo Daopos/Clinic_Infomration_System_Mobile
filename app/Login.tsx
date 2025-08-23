@@ -1,5 +1,4 @@
 import { AuthContext } from "@/context/AuthContext";
-import { loginService } from "@/services/AuthService";
 import { LoginForm } from "@/types/IAuth";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
@@ -30,8 +29,8 @@ const Login = () => {
   const handleSubmit = async () => {
     console.log(formData);
     try {
-      const response = await loginService(formData);
-      login(response.token);
+      // const response = await loginService(formData);
+      // login(response.token);
 
       router.replace("/Home");
     } catch (err) {

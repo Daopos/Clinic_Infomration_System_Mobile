@@ -3,6 +3,7 @@ import AppointmentService from "@/services/AppointmentService";
 import { AppointmentForm } from "@/types/IAppointment";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
+import { router } from "expo-router";
 import { useContext, useState } from "react";
 import {
   Platform,
@@ -26,26 +27,30 @@ const Create = () => {
   };
 
   const handleSubmit = async () => {
-    // 👇 Build the object only when user clicks
     const formData: AppointmentForm = {
       services: selectedValue,
       app_date: date.toISOString(),
     };
-    console.log(token);
 
     try {
       await AppointmentService.createAppointment(formData);
 
-      Toast.show({
-        type: "success",
-        text1: "Appointment created!",
+      // 👇 navigate first
+      router.push({
+        pathname: "/Home",
+        params: { toast: "success" }, // pass param
       });
-      //   router.push("/Home");
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
-    }
 
-    // now you can send `form` to your API
+      // 👇 show error toast here
+      Toast.show({
+        type: "error",
+        text1: "Failed to create appointment",
+        text2: err?.response?.data?.message || "Something went wrong",
+        position: "bottom",
+      });
+    }
   };
 
   return (
@@ -107,6 +112,7 @@ const Create = () => {
           <Text className="text-white text-center">Submit</Text>
         </TouchableOpacity>
       </View>
+      <Toast />
     </ScrollView>
   );
 };

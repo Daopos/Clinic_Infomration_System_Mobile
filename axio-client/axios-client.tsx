@@ -2,7 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosResponse } from "axios";
 
 const AxiosClient = axios.create({
-  baseURL: "http://localhost:3000/api/v1",
+  baseURL: "http://192.168.1.9:3000/api/v1",
+
+  // baseURL: "http://localhost:3000/api/v1",
 });
 
 // 🔑 Add token before every request
