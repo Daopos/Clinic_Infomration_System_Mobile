@@ -23,6 +23,11 @@ const Index = () => {
     middlename: "",
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof SignupForm | "confirmPassword", string>>
+  >({});
+
   type FormField = keyof SignupForm;
 
   const handleChange = (name: FormField, value: string) => {
@@ -30,12 +35,49 @@ const Index = () => {
       ...prev,
       [name]: value,
     }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "", // clear error on typing
+    }));
+  };
+
+  const validate = () => {
+    let newErrors: Partial<
+      Record<keyof SignupForm | "confirmPassword", string>
+    > = {};
+
+    if (!formData.firstname) newErrors.firstname = "First name is required";
+    if (!formData.lastname) newErrors.lastname = "Last name is required";
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Confirm Password is required";
+    } else if (confirmPassword !== formData.password) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!validate()) return;
+
     try {
       const response = await signup(formData);
-      login("test");
+      login(response.token);
       router.replace("/Home");
     } catch (err) {
       console.log(err);
@@ -56,11 +98,13 @@ const Index = () => {
         <Text className="text-gray-500 mb-2">First Name</Text>
         <TextInput
           placeholder="First name"
-          className="border p-3 "
+          className="border p-3"
           value={formData.firstname}
           onChangeText={(text) => handleChange("firstname", text)}
         />
-        <Text className="mb-4">testsss</Text>
+        {errors.firstname && (
+          <Text className="text-red-500">{errors.firstname}</Text>
+        )}
 
         {/* Middle Name */}
         <Text className="text-gray-500 mb-2">Middle Name</Text>
@@ -70,6 +114,9 @@ const Index = () => {
           value={formData.middlename}
           onChangeText={(text) => handleChange("middlename", text)}
         />
+        {errors.middlename && (
+          <Text className="text-red-500">{errors.middlename}</Text>
+        )}
 
         {/* Last Name */}
         <Text className="text-gray-500 mb-2">Last Name</Text>
@@ -79,6 +126,9 @@ const Index = () => {
           value={formData.lastname}
           onChangeText={(text) => handleChange("lastname", text)}
         />
+        {errors.lastname && (
+          <Text className="text-red-500">{errors.lastname}</Text>
+        )}
 
         {/* Email */}
         <Text className="text-gray-500 mb-2">Email</Text>
@@ -90,6 +140,7 @@ const Index = () => {
           value={formData.email}
           onChangeText={(text) => handleChange("email", text)}
         />
+        {errors.email && <Text className="text-red-500">{errors.email}</Text>}
 
         {/* Password */}
         <Text className="text-gray-500 mb-2">Password</Text>
@@ -100,6 +151,9 @@ const Index = () => {
           value={formData.password}
           onChangeText={(text) => handleChange("password", text)}
         />
+        {errors.password && (
+          <Text className="text-red-500">{errors.password}</Text>
+        )}
 
         {/* Confirm Password */}
         <Text className="text-gray-500 mb-2">Confirm Password</Text>
@@ -107,8 +161,12 @@ const Index = () => {
           placeholder="Confirm Password"
           secureTextEntry
           className="border p-3"
-          // You can add a separate confirmPassword state if needed
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
         />
+        {errors.confirmPassword && (
+          <Text className="text-red-500">{errors.confirmPassword}</Text>
+        )}
 
         {/* Submit Button */}
         <TouchableOpacity

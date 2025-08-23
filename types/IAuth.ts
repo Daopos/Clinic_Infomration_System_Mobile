@@ -6,6 +6,11 @@ export interface SignupForm {
   middlename: string;
 }
 
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
 export interface IUserResponse {
   token: string;
 }

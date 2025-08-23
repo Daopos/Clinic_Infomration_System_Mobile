@@ -1,6 +1,8 @@
 import { AuthContext } from "@/context/AuthContext";
+import { loginService } from "@/services/AuthService";
+import { LoginForm } from "@/types/IAuth";
 import { router } from "expo-router";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -12,10 +14,29 @@ import {
 const Login = () => {
   const { login } = useContext(AuthContext);
 
-  const handleSubmit = () => {
-    login("test");
+  const [formData, setFormData] = useState<LoginForm>({
+    email: "",
+    password: "",
+  });
+  type FormField = keyof LoginForm;
 
-    router.replace("/Home");
+  const handleChange = (name: FormField, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    console.log(formData);
+    try {
+      const response = await loginService(formData);
+      login(response.token);
+
+      router.replace("/Home");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -29,12 +50,16 @@ const Login = () => {
         <TextInput
           placeholder="useless placeholder"
           className="border p-3 mb-4"
+          value={formData.email}
+          onChangeText={(text) => handleChange("email", text)}
         />
 
         <Text className="text-gray-500 mb-2">Password</Text>
         <TextInput
           placeholder="useless placeholder"
           className="border p-3 mb-4"
+          value={formData.password}
+          onChangeText={(text) => handleChange("password", text)}
         />
 
         <TouchableOpacity
