@@ -1,4 +1,5 @@
 import { AuthContext } from "@/context/AuthContext";
+import { loginService } from "@/services/AuthService";
 import { LoginForm } from "@/types/IAuth";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
@@ -29,8 +30,8 @@ const Login = () => {
   const handleSubmit = async () => {
     console.log(formData);
     try {
-      // const response = await loginService(formData);
-      // login(response.token);
+      const response = await loginService(formData);
+      login(response.token);
 
       router.replace("/Home");
     } catch (err) {
@@ -47,7 +48,7 @@ const Login = () => {
 
         <Text className="text-gray-500 mb-2">Email</Text>
         <TextInput
-          placeholder="useless placeholder"
+          placeholder="Enter email"
           className="border p-3 mb-4"
           value={formData.email}
           onChangeText={(text) => handleChange("email", text)}
@@ -55,10 +56,11 @@ const Login = () => {
 
         <Text className="text-gray-500 mb-2">Password</Text>
         <TextInput
-          placeholder="useless placeholder"
+          placeholder="Enter password"
           className="border p-3 mb-4"
           value={formData.password}
           onChangeText={(text) => handleChange("password", text)}
+          secureTextEntry
         />
 
         <TouchableOpacity

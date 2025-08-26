@@ -17,13 +17,38 @@ import Toast from "react-native-toast-message";
 const Create = () => {
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [mode, setMode] = useState<"date" | "time">("date"); // ✅ for Android
   const [selectedValue, setSelectedValue] = useState("");
 
   const { token } = useContext(AuthContext);
 
   const onChangeDate = (event: any, selectedDate?: Date) => {
-    setShowPicker(false);
-    if (selectedDate) setDate(selectedDate);
+    if (Platform.OS === "android") {
+      if (event.type === "dismissed") {
+        setShowPicker(false);
+        return;
+      }
+
+      if (mode === "date" && selectedDate) {
+        // Save the date, then open time picker
+        const currentDate = new Date(selectedDate);
+        setDate(currentDate);
+        setMode("time");
+        setShowPicker(true);
+        return;
+      }
+
+      if (mode === "time" && selectedDate) {
+        const currentDate = new Date(date);
+        currentDate.setHours(selectedDate.getHours());
+        currentDate.setMinutes(selectedDate.getMinutes());
+        setDate(currentDate);
+        setShowPicker(false);
+      }
+    } else {
+      // ✅ iOS supports datetime directly
+      if (selectedDate) setDate(selectedDate);
+    }
   };
 
   const handleSubmit = async () => {
@@ -35,15 +60,12 @@ const Create = () => {
     try {
       await AppointmentService.createAppointment(formData);
 
-      // 👇 navigate first
       router.push({
         pathname: "/Home",
-        params: { toast: "success" }, // pass param
+        params: { toast: "success" },
       });
     } catch (err: any) {
       console.log(err);
-
-      // 👇 show error toast here
       Toast.show({
         type: "error",
         text1: "Failed to create appointment",
@@ -61,19 +83,19 @@ const Create = () => {
         <View
           className="border border-gray-300 rounded-lg bg-white"
           style={{
-            overflow: "hidden", // for iOS rounded border
+            overflow: "hidden",
           }}
         >
           <Picker
             selectedValue={selectedValue}
             onValueChange={(itemValue) => setSelectedValue(itemValue)}
-            dropdownIconColor="black" // Android dropdown arrow color
+            dropdownIconColor="black"
             style={{
-              color: Platform.OS === "ios" ? "black" : "black", // text color
+              color: "black",
               height: Platform.OS === "ios" ? 200 : 50,
             }}
             itemStyle={{
-              color: "black", // iOS text color in wheel
+              color: "black",
             }}
           >
             <Picker.Item label="-- Choose an option --" value="" />
@@ -89,7 +111,12 @@ const Create = () => {
         </Text>
         <TouchableOpacity
           className="border border-gray-300 rounded-lg p-3 bg-white"
-          onPress={() => setShowPicker(true)}
+          onPress={() => {
+            if (Platform.OS === "android") {
+              setMode("date"); // start with date
+            }
+            setShowPicker(true);
+          }}
         >
           <Text className={date ? "text-gray-900" : "text-gray-400"}>
             {date ? date.toLocaleString() : "Select date & time"}
@@ -99,7 +126,7 @@ const Create = () => {
         {showPicker && (
           <DateTimePicker
             value={date}
-            mode="datetime"
+            mode={Platform.OS === "ios" ? "datetime" : mode}
             display="default"
             onChange={onChangeDate}
           />

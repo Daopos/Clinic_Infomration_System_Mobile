@@ -1,5 +1,6 @@
 import AxiosClient from "@/axio-client/axios-client";
-import { AppointmentForm } from "@/types/IAppointment";
+import { Appointment, AppointmentForm } from "./../types/IAppointment";
+
 import { AxiosError } from "axios";
 
 const createAppointment = async (data: AppointmentForm) => {
@@ -14,6 +15,13 @@ const createAppointment = async (data: AppointmentForm) => {
   }
 };
 
+const getAppointmentById = async (): Promise<Appointment[]> => {
+  const result = await AxiosClient.get("/appointments/patient");
+
+  return result.data.responseData;
+};
+
 export default {
   createAppointment,
+  getAppointmentById,
 };

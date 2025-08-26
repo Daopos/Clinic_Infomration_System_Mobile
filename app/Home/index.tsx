@@ -1,5 +1,8 @@
+import AppointmentService from "@/services/AppointmentService";
+import { Appointment } from "@/types/IAppointment";
+import { transformDateTime } from "@/utils/transform";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -11,6 +14,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 const Index = () => {
+  const [appointments, setAppoitnments] = useState<Appointment[]>([]);
+
+  useEffect(() => {
+    getAppoitnments();
+  }, []);
+
+  const getAppoitnments = async () => {
+    const data = await AppointmentService.getAppointmentById();
+
+    setAppoitnments(data);
+  };
+
   const { toast } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
 
@@ -39,20 +54,17 @@ const Index = () => {
         <Text className="text-3xl font-bold italic p-4 tracking-wider">
           Appointment
         </Text>
-        <View className="bg-white rounded-2xl shadow-md p-4 m-2">
-          <View className="flex-row justify-between">
-            <Text className="text-lg font-bold">Service</Text>
-            <Text className="text-gray-600">Pending</Text>
+        {appointments.map((app) => (
+          <View key={app.id} className="bg-white rounded-2xl shadow-md p-4 m-2">
+            <View className="flex-row justify-between">
+              <Text className="text-lg font-bold">{app.services}</Text>
+              <Text className="text-gray-600">{app.status}</Text>
+            </View>
+            <Text className="mt-2 text-gray-600">
+              {transformDateTime(app.app_date)}
+            </Text>
           </View>
-          <Text className="mt-2 text-gray-600">Aug 20, 2025</Text>
-        </View>
-        <View className="bg-white rounded-2xl shadow-md p-4 m-2">
-          <View className="flex-row justify-between">
-            <Text className="text-lg font-bold">Service</Text>
-            <Text className="text-gray-600">Pending</Text>
-          </View>
-          <Text className="mt-2 text-gray-600">Aug 20, 2025</Text>
-        </View>
+        ))}
       </ScrollView>
 
       {/* Floating Action Button */}
