@@ -4,6 +4,7 @@ import { transformDateTime } from "@/utils/transform";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  RefreshControl,
   ScrollView,
   StatusBar,
   Text,
@@ -14,17 +15,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 const Index = () => {
-  const [appointments, setAppoitnments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [refreshing, setRefreshing] = useState(false); // ✅ for pull-to-refresh
+
+  const getAppointments = async () => {
+    try {
+      const data = await AppointmentService.getAppointmentById();
+      setAppointments(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
-    getAppoitnments();
+    getAppointments();
   }, []);
-
-  const getAppoitnments = async () => {
-    const data = await AppointmentService.getAppointmentById();
-
-    setAppoitnments(data);
-  };
 
   const { toast } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -35,8 +40,16 @@ const Index = () => {
         type: "success",
         text1: "Appointment created!",
       });
+      getAppointments(); // ✅ refresh list after creating
     }
   }, [toast]);
+
+  // ✅ Pull-to-refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await getAppointments();
+    setRefreshing(false);
+  };
 
   const handleAdd = () => {
     router.push("/Book/Create");
@@ -49,11 +62,17 @@ const Index = () => {
     >
       <StatusBar barStyle="dark-content" />
 
-      {/* Scrollable content */}
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      {/* Scrollable content with pull-to-refresh */}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Text className="text-3xl font-bold italic p-4 tracking-wider">
           Appointment
         </Text>
+
         {appointments.map((app) => (
           <View key={app.id} className="bg-white rounded-2xl shadow-md p-4 m-2">
             <View className="flex-row justify-between">

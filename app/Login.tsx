@@ -15,8 +15,8 @@ const Login = () => {
   const { login } = useContext(AuthContext);
 
   const [formData, setFormData] = useState<LoginForm>({
-    email: "",
-    password: "",
+    email: "mobile@gmail.com",
+    password: "123456",
   });
   type FormField = keyof LoginForm;
 
